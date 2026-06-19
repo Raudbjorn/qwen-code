@@ -8,7 +8,6 @@ export {
   collectSessionData,
   generateExportFilename,
   normalizeSessionData,
-  toHtml,
   toJson,
   toJsonl,
   toMarkdown,

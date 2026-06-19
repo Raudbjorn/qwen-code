@@ -62,7 +62,6 @@ export * from './core/permission-helpers.js';
 export * from './core/geminiChat.js';
 export * from './core/geminiRequest.js';
 export * from './core/inlineMediaLimit.js';
-export * from './core/insightProtocol.js';
 export * from './core/logger.js';
 export * from './core/nonInteractiveToolExecutor.js';
 export * from './core/prompts.js';
