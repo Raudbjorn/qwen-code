@@ -12,7 +12,7 @@
 _pkgname=qwen-code
 pkgname=${_pkgname}-git
 _name=qwen
-pkgver=.r1.g2a7f369d7
+pkgver=0.18.3.r0.g2a7f369d7
 pkgrel=1
 pkgdesc="Open-source AI agent for the terminal (QwenLM/qwen-code fork by Raudbjorn)"
 arch=('any')
@@ -27,9 +27,6 @@ depends=(
 )
 optdepends=(
   'xdg-utils: open links and launch browser integration'
-  'gcc: rebuild native modules (e.g. better-sqlite3) on Node ABI bumps'
-  'make: build native modules'
-  'python: node-gyp build script runtime'
 )
 provides=("$_pkgname" "${_name}")
 conflicts=("$_pkgname" "${_name}")
@@ -45,10 +42,14 @@ sha256sums=(
   '729be4baa7cd839aa383910df26d15111d2af1e4c5415f5bb01ff949881fe8cb'
 )
 
-# -- Hardware-tuned build environment -----------------------------------------
+# -- Parallel-build environment ------------------------------------------------
 # 12C/24T Ryzen 9 7900X3D: use every logical core for esbuild and npm.
 # 64 GB DDR5: large Node heap (8 GB) is comfortable; tsc workers benefit.
 # NVMe: SRCDEST/BUILDDIR on tmpfs/devices with the underlying NVMe is fine.
+#
+# CFLAGS / CXXFLAGS are intentionally left to the user's makepkg.conf.
+# Forcing -march= here would break the package on older x86 CPUs and
+# violate Arch packaging policy.
 #
 # All variables are also exported so child npm/esbuild invocations see them.
 _physical_cpus=$(nproc)
@@ -66,8 +67,8 @@ export NODE_OPTIONS="--max-old-space-size=${_node_heap}"
 # EBADPLATFORM on this Linux/x64 box.
 export npm_config_optional=false
 export CI=  # upstream sets CI=1 in some scripts; leave unset for our build
-export CXXFLAGS="${CXXFLAGS} -march=x86-64-v3 -O3 -pipe"
-export CFLAGS="${CFLAGS} -march=x86-64-v3 -O3 -pipe"
+export CXXFLAGS="${CXXFLAGS} -O3 -pipe"
+export CFLAGS="${CFLAGS} -O3 -pipe"
 
 # -- pkgver() -----------------------------------------------------------------
 # Generate pkgver from the current git HEAD on the default branch.
@@ -84,17 +85,15 @@ pkgver() {
 
 # -- prepare() ----------------------------------------------------------------
 # Run after a clean VCS checkout. We make src writable and verify the tree.
+# makepkg with `git+https://` in source=() already clones the full ref +
+# tag history, so no manual `git fetch` is needed. Network access here
+# would also break reproducible clean-chroot builds via
+# devtools/extra-x86_64-build, which runs prepare() offline.
 prepare() {
   cd "${srcdir}/${_pkgname}"
   # Some upstream scripts require a writable working tree at build time
   # (e.g. scripts/generate-git-commit-info.js writes to dist/).
   chmod -R u+w .
-
-  # Pull the latest refs + tags. Tags are required for pkgver() to resolve
-  # the most recent v* tag via `git describe`; the default shallow clone
-  # only fetches the tip commit.
-  git fetch origin 2>/dev/null || true
-  git fetch --tags origin 2>/dev/null || true
 }
 
 # -- build() ------------------------------------------------------------------
@@ -106,18 +105,14 @@ build() {
 
   # 1. Install all workspace deps. Upstream uses npm workspaces, so this
   #    populates node_modules at the repo root plus per-package symlinks.
-  #    Native modules (better-sqlite3, etc.) are compiled here; this is
-  #    where most of the wall-clock time goes on first build.
   #    --no-optional: skip @rollup/rollup-{darwin,win32}-arm64 packages
   #    that npm would otherwise try to install on this Linux/x64 host.
   npm install --no-audit --no-fund --no-optional --include=dev --ignore-scripts
 
   # 2. Build all workspace TypeScript packages in dependency order.
-  #    --cli-only skips the removed-vscode/webui/web-shell/sdk workspaces
-  #    that this slim fork no longer ships.
-  # Build via scripts/build.js with --cli-only. The script is the
-  # single entrypoint that knows which workspaces to skip (webui,
-  # web-shell, sdk, vscode-ide-companion) on this slim fork.
+  #    Build via scripts/build.js with --cli-only. The script is the
+  #    single entrypoint that knows which workspaces to skip (webui,
+  #    web-shell, sdk, vscode-ide-companion) on this slim fork.
   node scripts/build.js --cli-only
 
   # 3. Bundle dist/cli.js + the fzf worker + all shared chunks via esbuild.
@@ -177,6 +172,6 @@ package() {
 
   # Disable upstream's auto-update nag at the system level. Users can
   # still re-enable it via ~/.qwen/settings.json.
-  install -Dm644 "system-defaults.json" \
+  install -Dm644 "${srcdir}/system-defaults.json" \
     "${pkgdir}/etc/qwen-code/system-defaults.json"
 }

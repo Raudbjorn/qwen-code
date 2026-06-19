@@ -8,18 +8,12 @@ pkgbase = qwen-code-git
 	depends = nodejs>=22.0.0
 	depends = ripgrep
 	optdepends = xdg-utils: open links and launch browser integration
-	optdepends = gcc: rebuild native modules (e.g. better-sqlite3) on Node ABI bumps
-	optdepends = make: build native modules
-	optdepends = python: node-gyp build script runtime
 	provides = qwen-code
 	provides = qwen
 	conflicts = qwen-code
 	conflicts = qwen
-	source = qwen-code-0.18.3.r0.g2a7f369d7::git+https://github.com/Raudbjorn/qwen-code.git
+	source = qwen-code::git+https://github.com/Raudbjorn/qwen-code.git
 	source = system-defaults.json
-	b2sums = SKIP
-	b2sums = 729be4baa7cd839aa383910df26d15111d2af1e4c5415f5bb01ff949881fe8cb
 	sha256sums = SKIP
 	sha256sums = 729be4baa7cd839aa383910df26d15111d2af1e4c5415f5bb01ff949881fe8cb
-
 pkgname = qwen-code-git
