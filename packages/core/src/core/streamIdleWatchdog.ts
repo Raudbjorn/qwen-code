@@ -1,5 +1,5 @@
 import { createDebugLogger } from '../utils/debugLogger.js';
-import { InvalidStreamError } from './geminiChat.js';
+
 
 const debugLogger = createDebugLogger('QWEN_CODE_WATCHDOG');
 
@@ -10,6 +10,26 @@ export type InvalidStreamErrorType =
   | 'NO_FINISH_REASON'
   | 'NO_RESPONSE_TEXT'
   | 'STREAM_IDLE_TIMEOUT';
+
+/**
+ * Error raised when a stream fails an integrity check or is aborted by
+ * the idle watchdog. The `type` discriminator lets the retry layer
+ * decide whether to retry (transient: STREAM_IDLE_TIMEOUT) or surface
+ * the error to the caller (permanent: NO_FINISH_REASON, NO_RESPONSE_TEXT).
+ *
+ * Lives in this module (not in geminiChat) to avoid a circular import:
+ * geminiChat imports from this file, and the watchdog needs to throw
+ * the error type.
+ */
+export class InvalidStreamError extends Error {
+  readonly type: InvalidStreamErrorType;
+
+  constructor(message: string, type: InvalidStreamErrorType) {
+    super(message);
+    this.name = 'InvalidStreamError';
+    this.type = type;
+  }
+}
 
 export interface StreamIdleWatchdog {
   next<T>(nextPromise: Promise<IteratorResult<T>>): Promise<IteratorResult<T>>;

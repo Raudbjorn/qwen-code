@@ -85,9 +85,11 @@ import {
 import {
   createStreamIdleWatchdog,
   linkAbortSignal,
-  type StreamIdleWatchdog,
-  type InvalidStreamErrorType,
+  InvalidStreamError,
 } from './streamIdleWatchdog.js';
+// Re-export so existing `import { InvalidStreamError } from './geminiChat.js'`
+// (test files, downstream callers) still work after the class moved.
+export { InvalidStreamError };
 
 const debugLogger = createDebugLogger('QWEN_CODE_CHAT');
 
@@ -994,19 +996,6 @@ function stripThoughtPartsFromContent(content: Content): Content | null {
   };
 }
 
-/**
- * Custom error to signal that a stream completed with invalid content,
- * which should trigger a retry.
- */
-export class InvalidStreamError extends Error {
-  readonly type: InvalidStreamErrorType;
-
-  constructor(message: string, type: InvalidStreamErrorType) {
-    super(message);
-    this.name = 'InvalidStreamError';
-    this.type = type;
-  }
-}
 
 /**
  * Default error text used when a synthesized `functionResponse` has to stand
@@ -2679,18 +2668,32 @@ export class GeminiChat {
       },
     });
 
-    try {
-      return this.processStreamResponse(
-        model,
-        streamResponse,
-        streamWatchdog,
-        cleanupAbortLink,
-      );
-    } catch (error) {
-      streamWatchdog?.cleanup();
-      cleanupAbortLink?.();
-      throw error;
-    }
+    // Wrap the raw stream with the idle watchdog. Each call to
+    // `watchedStream.next()` races the underlying `next()` against the
+    // idle timeout. Cleanup runs in the `finally` block so it covers
+    // both normal completion and any error path (network drop, abort,
+    // watchdog timeout). This is the only place the watchdog is wired
+    // into the iteration — passing `_streamWatchdog` to
+    // `processStreamResponse` would leave the watchdog inactive.
+    const watchedStream: AsyncGenerator<GenerateContentResponse> = (async function* () {
+      try {
+        const iterator = streamResponse[Symbol.asyncIterator]();
+        while (true) {
+          const nextPromise = iterator.next();
+          const { done, value } = streamWatchdog
+            ? await streamWatchdog.next(nextPromise)
+            : await nextPromise;
+          if (done) break;
+          yield value;
+        }
+      } finally {
+        streamWatchdog?.cleanup();
+        cleanupAbortLink();
+      }
+    })();
+
+    return this.processStreamResponse(model, watchedStream);
+
   }
 
   /**
@@ -2994,8 +2997,6 @@ export class GeminiChat {
   private async *processStreamResponse(
     model: string,
     streamResponse: AsyncGenerator<GenerateContentResponse>,
-    _streamWatchdog?: StreamIdleWatchdog,
-    _cleanupAbortLink?: () => void,
   ): AsyncGenerator<GenerateContentResponse> {
     // Collect ALL parts from the model response (including thoughts for recording)
     const allModelParts: Part[] = [];
