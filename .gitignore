@@ -68,9 +68,7 @@ pr_body.md
 # Generated files
 packages/cli/src/generated/
 packages/core/src/generated/
-packages/web-templates/src/generated/
 .integration-tests/
-packages/vscode-ide-companion/*.vsix
 
 logs/
 .repro-runs/
@@ -81,17 +79,9 @@ gha-creds-*.json
 patch_output.log
 
 # docs build
-docs-site/.next
-# content is a symlink to ../docs
-docs-site/content
 
 # python cache
 __pycache__/
-
-integration-tests/concurrent-runner/output/
-integration-tests/concurrent-runner/task-*
-
-integration-tests/terminal-capture/scenarios/screenshots/
 
 # Test-built worker artifact (fzfWorkerHandle.test.ts builds this on-the-fly)
 packages/core/src/utils/filesearch/fzfWorker.js
