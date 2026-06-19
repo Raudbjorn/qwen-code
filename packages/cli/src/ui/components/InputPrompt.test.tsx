@@ -1352,7 +1352,7 @@ describe('InputPrompt', () => {
     await wait();
     const afterArrowFrame = stripAnsi(lastFrame() ?? '');
     expect(afterArrowFrame).toContain('/help');
-    expect(afterArrowFrame).not.toMatch(//\\s+(md|json|jsonl)/);
+    expect(afterArrowFrame).not.toMatch(/\\s+(md|json|jsonl)/);
     unmount();
   });
 
