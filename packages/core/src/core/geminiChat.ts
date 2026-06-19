@@ -82,6 +82,14 @@ import {
   collectToolCallIdsFromHistory,
   normalizeModelToolCallIds,
 } from './toolCallIdUtils.js';
+import {
+  createStreamIdleWatchdog,
+  linkAbortSignal,
+  InvalidStreamError,
+} from './streamIdleWatchdog.js';
+// Re-export so existing `import { InvalidStreamError } from './geminiChat.js'`
+// (test files, downstream callers) still work after the class moved.
+export { InvalidStreamError };
 
 const debugLogger = createDebugLogger('QWEN_CODE_CHAT');
 
@@ -988,19 +996,6 @@ function stripThoughtPartsFromContent(content: Content): Content | null {
   };
 }
 
-/**
- * Custom error to signal that a stream completed with invalid content,
- * which should trigger a retry.
- */
-export class InvalidStreamError extends Error {
-  readonly type: 'NO_FINISH_REASON' | 'NO_RESPONSE_TEXT';
-
-  constructor(message: string, type: 'NO_FINISH_REASON' | 'NO_RESPONSE_TEXT') {
-    super(message);
-    this.name = 'InvalidStreamError';
-    this.type = type;
-  }
-}
 
 /**
  * Default error text used when a synthesized `functionResponse` has to stand
@@ -2605,14 +2600,27 @@ export class GeminiChat {
     params: SendMessageParameters,
     prompt_id: string,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
+    const streamAbortController = new AbortController();
+    const cleanupAbortLink = linkAbortSignal(
+      params.config?.abortSignal,
+      streamAbortController,
+    );
+    const streamWatchdog = createStreamIdleWatchdog(
+      model,
+      streamAbortController,
+    );
     const apiCall = () =>
       this.config.getContentGenerator().generateContentStream(
         {
           model,
           contents: requestContents,
-          config: { ...this.generationConfig, ...params.config },
-        },
-        prompt_id,
+          config: {
+            ...this.generationConfig,
+            ...params.config,
+            abortSignal: streamAbortController.signal,
+          },
+         },
+         prompt_id,
       );
     const cgConfig = this.config.getContentGeneratorConfig();
     const extraRetryErrorCodes = cgConfig?.retryErrorCodes;
@@ -2660,7 +2668,32 @@ export class GeminiChat {
       },
     });
 
-    return this.processStreamResponse(model, streamResponse);
+    // Wrap the raw stream with the idle watchdog. Each call to
+    // `watchedStream.next()` races the underlying `next()` against the
+    // idle timeout. Cleanup runs in the `finally` block so it covers
+    // both normal completion and any error path (network drop, abort,
+    // watchdog timeout). This is the only place the watchdog is wired
+    // into the iteration — passing `_streamWatchdog` to
+    // `processStreamResponse` would leave the watchdog inactive.
+    const watchedStream: AsyncGenerator<GenerateContentResponse> = (async function* () {
+      try {
+        const iterator = streamResponse[Symbol.asyncIterator]();
+        while (true) {
+          const nextPromise = iterator.next();
+          const { done, value } = streamWatchdog
+            ? await streamWatchdog.next(nextPromise)
+            : await nextPromise;
+          if (done) break;
+          yield value;
+        }
+      } finally {
+        streamWatchdog?.cleanup();
+        cleanupAbortLink();
+      }
+    })();
+
+    return this.processStreamResponse(model, watchedStream);
+
   }
 
   /**
