@@ -910,7 +910,6 @@ export default {
   // ============================================================================
   'Export current session message history to a file':
     '将当前会话的消息记录导出到文件',
-  'Export session to HTML format': '将会话导出为 HTML 文件',
   'Export session to JSON format': '将会话导出为 JSON 文件',
   'Export session to JSONL format (one message per line)':
     '将会话导出为 JSONL 文件（每行一条消息）',
@@ -919,8 +918,6 @@ export default {
   // ============================================================================
   // Commands - Insights
   // ============================================================================
-  'generate personalized programming insights from your chat history':
-    '根据你的聊天记录生成个性化编程洞察',
 
   // ============================================================================
   // Commands - Session History
@@ -1477,8 +1474,6 @@ export default {
     '按 Shift+Tab 或输入 /approval-mode 可快速切换权限模式。',
   'You can switch permission mode quickly with Tab or /approval-mode.':
     '按 Tab 或输入 /approval-mode 可快速切换权限模式。',
-  'Try /insight to generate personalized insights from your chat history.':
-    '试试 /insight，从聊天记录中生成个性化洞察。',
   'Press Ctrl+O to toggle compact mode — hide tool output and thinking for a cleaner view.':
     '按 Ctrl+O 切换紧凑模式 ── 隐藏工具输出和思考过程，界面更简洁。',
   'Add a QWEN.md file to give Qwen Code persistent project context.':

@@ -50,7 +50,6 @@ export function isSyntheticHistoryItem(
     case 'gemini_thought':
     case 'gemini_thought_content':
     case 'away_recap':
-    case 'insight_progress':
     case 'user_prompt_submit_blocked':
     case 'stop_hook_loop':
     case 'stop_hook_system_message':

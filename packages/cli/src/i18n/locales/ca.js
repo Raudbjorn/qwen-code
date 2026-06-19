@@ -866,7 +866,6 @@ export default {
   // ============================================================================
   'Export current session message history to a file':
     "Exportar l'historial de missatges de la sessió actual a un fitxer",
-  'Export session to HTML format': 'Exportar la sessió en format HTML',
   'Export session to JSON format': 'Exportar la sessió en format JSON',
   'Export session to JSONL format (one message per line)':
     'Exportar la sessió en format JSONL (un missatge per línia)',
@@ -875,8 +874,6 @@ export default {
   // ============================================================================
   // Ordres - Idees
   // ============================================================================
-  'generate personalized programming insights from your chat history':
-    'generar idees de programació personalitzades a partir del vostre historial de xat',
 
   // ============================================================================
   // Ordres - Historial de sessió
@@ -1443,8 +1440,6 @@ export default {
     'Podeu canviar ràpidament el mode de permisos amb Shift+Tab o /approval-mode.',
   'You can switch permission mode quickly with Tab or /approval-mode.':
     'Podeu canviar ràpidament el mode de permisos amb Tab o /approval-mode.',
-  'Try /insight to generate personalized insights from your chat history.':
-    'Proveu /insight per generar idees personalitzades a partir del vostre historial de xat.',
   'Press Ctrl+O to toggle compact mode — hide tool output and thinking for a cleaner view.':
     'Premeu Ctrl+O per canviar el mode compacte — amagueu la sortida de les eines i el pensament per a una vista més neta.',
   'Add a QWEN.md file to give Qwen Code persistent project context.':

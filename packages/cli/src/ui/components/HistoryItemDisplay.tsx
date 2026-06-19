@@ -51,7 +51,6 @@ import { McpStatus } from './views/McpStatus.js';
 import { ContextUsage } from './views/ContextUsage.js';
 import { DoctorReport } from './views/DoctorReport.js';
 import { ArenaAgentCard, ArenaSessionCard } from './arena/ArenaCards.js';
-import { InsightProgressMessage } from './messages/InsightProgressMessage.js';
 import { BtwMessage } from './messages/BtwMessage.js';
 import { MemorySavedMessage } from './messages/MemorySavedMessage.js';
 import { DiffStatsDisplay } from './messages/DiffStatsDisplay.js';
@@ -105,7 +104,6 @@ function getHistoryItemMarginTop(item: HistoryItem): number {
     case 'notification':
     case 'compression':
     case 'summary':
-    case 'insight_progress':
     case 'btw':
     case 'away_recap':
     case 'user':
@@ -339,9 +337,6 @@ const HistoryItemDisplayComponent: React.FC<HistoryItemDisplayProps> = ({
           agents={itemForDisplay.agents}
           width={boxWidth}
         />
-      )}
-      {itemForDisplay.type === 'insight_progress' && (
-        <InsightProgressMessage progress={itemForDisplay.progress} />
       )}
       {itemForDisplay.type === 'btw' && itemForDisplay.btw && (
         <BtwMessage btw={itemForDisplay.btw} containerWidth={contentWidth} />

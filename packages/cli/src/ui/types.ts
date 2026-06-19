@@ -459,13 +459,6 @@ export type HistoryItemArenaSessionComplete = HistoryItemBase & {
   agents: ArenaAgentCardData[];
 };
 
-/**
- * Insight progress message.
- */
-export type HistoryItemInsightProgress = HistoryItemBase & {
-  type: 'insight_progress';
-  progress: InsightProgressProps;
-};
 
 export interface BtwProps {
   question: string;
@@ -605,7 +598,6 @@ export type HistoryItemWithoutId =
   | HistoryItemContextUsage
   | HistoryItemArenaAgentComplete
   | HistoryItemArenaSessionComplete
-  | HistoryItemInsightProgress
   | HistoryItemBtw
   | HistoryItemMemorySaved
   | HistoryItemAwayRecap
@@ -641,19 +633,10 @@ export enum MessageType {
   CONTEXT_USAGE = 'context_usage',
   ARENA_AGENT_COMPLETE = 'arena_agent_complete',
   ARENA_SESSION_COMPLETE = 'arena_session_complete',
-  INSIGHT_PROGRESS = 'insight_progress',
   BTW = 'btw',
   NOTIFICATION = 'notification',
   DIFF_STATS = 'diff_stats',
   GOAL_STATUS = 'goal_status',
-}
-
-export interface InsightProgressProps {
-  stage: string;
-  progress: number;
-  detail?: string;
-  isComplete?: boolean;
-  error?: string;
 }
 
 // Simplified message structure for internal feedback
@@ -726,11 +709,6 @@ export type Message =
       summary: SummaryProps;
       timestamp: Date;
     }
-  | {
-      type: MessageType.INSIGHT_PROGRESS;
-      progress: InsightProgressProps;
-      timestamp: Date;
-    };
 
 export interface ConsoleMessageItem {
   type: 'log' | 'warn' | 'error' | 'debug' | 'info';
