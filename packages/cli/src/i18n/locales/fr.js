@@ -889,7 +889,6 @@ export default {
   // ============================================================================
   'Export current session message history to a file':
     "Exporter l'historique des messages de la session actuelle vers un fichier",
-  'Export session to HTML format': 'Exporter la session au format HTML',
   'Export session to JSON format': 'Exporter la session au format JSON',
   'Export session to JSONL format (one message per line)':
     'Exporter la session au format JSONL (un message par ligne)',
@@ -898,8 +897,6 @@ export default {
   // ============================================================================
   // Commandes - Insights
   // ============================================================================
-  'generate personalized programming insights from your chat history':
-    'générer des insights de programmation personnalisés depuis votre historique de chat',
 
   // ============================================================================
   // Commandes - Historique de session
@@ -1453,8 +1450,6 @@ export default {
     'Vous pouvez changer rapidement le mode de permission avec Shift+Tab ou /approval-mode.',
   'You can switch permission mode quickly with Tab or /approval-mode.':
     'Vous pouvez changer rapidement le mode de permission avec Tab ou /approval-mode.',
-  'Try /insight to generate personalized insights from your chat history.':
-    'Essayez /insight pour générer des insights personnalisés depuis votre historique de chat.',
 
   // ============================================================================
   // Écran de sortie / Stats

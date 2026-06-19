@@ -835,13 +835,10 @@ export default {
     'Hook 未啟用。請在設置中啟用 Hook 以使用此功能。',
   'Export current session message history to a file':
     '將當前會話的消息記錄導出到檔案',
-  'Export session to HTML format': '將會話導出為 HTML 檔案',
   'Export session to JSON format': '將會話導出為 JSON 檔案',
   'Export session to JSONL format (one message per line)':
     '將會話導出為 JSONL 檔案（每行一條消息）',
   'Export session to markdown format': '將會話導出為 Markdown 檔案',
-  'generate personalized programming insights from your chat history':
-    '根據你的聊天記錄生成個性化編程洞察',
   'Resume a previous session': '恢復先前會話',
   'Fork the current conversation into a new session': '將目前對話分支到新會話',
   'Spawn a background agent that inherits the full conversation':
@@ -1320,8 +1317,6 @@ export default {
     '按 Shift+Tab 或輸入 /approval-mode 可快速切換權限模式。',
   'You can switch permission mode quickly with Tab or /approval-mode.':
     '按 Tab 或輸入 /approval-mode 可快速切換權限模式。',
-  'Try /insight to generate personalized insights from your chat history.':
-    '試試 /insight，從聊天記錄中生成個性化洞察。',
   'Press Ctrl+O to toggle compact mode — hide tool output and thinking for a cleaner view.':
     '按 Ctrl+O 切換緊湊模式 ── 隱藏工具輸出和思考過程，界面更簡潔。',
   'Add a QWEN.md file to give Qwen Code persistent project context.':

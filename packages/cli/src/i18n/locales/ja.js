@@ -607,7 +607,6 @@ export default {
   // ============================================================================
   'Export current session message history to a file':
     '現在のセッションのメッセージ履歴をファイルにエクスポートする',
-  'Export session to HTML format': 'セッションを HTML 形式でエクスポートする',
   'Export session to JSON format': 'セッションを JSON 形式でエクスポートする',
   'Export session to JSONL format (one message per line)':
     'セッションを JSONL 形式でエクスポートする（1 行に 1 メッセージ）',
@@ -617,8 +616,6 @@ export default {
   // ============================================================================
   // Commands - Insights
   // ============================================================================
-  'generate personalized programming insights from your chat history':
-    'チャット履歴からパーソナライズされたプログラミングインサイトを生成する',
 
   // ============================================================================
   // Commands - Session History
@@ -1136,8 +1133,6 @@ export default {
     'Shift+Tab または /approval-mode で権限モードをすばやく切り替えられます。',
   'You can switch permission mode quickly with Tab or /approval-mode.':
     'Tab または /approval-mode で権限モードをすばやく切り替えられます。',
-  'Try /insight to generate personalized insights from your chat history.':
-    '/insight でチャット履歴からパーソナライズされたインサイトを生成できます。',
   'Press Ctrl+O to toggle compact mode — hide tool output and thinking for a cleaner view.':
     'Ctrl+O でコンパクトモードを切り替え — ツール出力と思考を非表示にしてすっきり表示。',
   'Add a QWEN.md file to give Qwen Code persistent project context.':

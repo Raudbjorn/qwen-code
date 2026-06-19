@@ -823,7 +823,6 @@ export default {
   // ============================================================================
   'Export current session message history to a file':
     'Den Nachrichtenverlauf der aktuellen Sitzung in eine Datei exportieren',
-  'Export session to HTML format': 'Sitzung in das HTML-Format exportieren',
   'Export session to JSON format': 'Sitzung in das JSON-Format exportieren',
   'Export session to JSONL format (one message per line)':
     'Sitzung in das JSONL-Format exportieren (eine Nachricht pro Zeile)',
@@ -833,8 +832,6 @@ export default {
   // ============================================================================
   // Commands - Insights
   // ============================================================================
-  'generate personalized programming insights from your chat history':
-    'Personalisierte Programmier-Einblicke aus Ihrem Chatverlauf generieren',
 
   // ============================================================================
   // Commands - Session History
@@ -1704,8 +1701,6 @@ export default {
     'Sie können den Berechtigungsmodus schnell mit Shift+Tab oder /approval-mode wechseln.',
   'You can switch permission mode quickly with Tab or /approval-mode.':
     'Sie können den Berechtigungsmodus schnell mit Tab oder /approval-mode wechseln.',
-  'Try /insight to generate personalized insights from your chat history.':
-    'Probieren Sie /insight, um personalisierte Erkenntnisse aus Ihrem Chatverlauf zu erstellen.',
   'Press Ctrl+O to toggle compact mode — hide tool output and thinking for a cleaner view.':
     'Ctrl+O drücken, um den Kompaktmodus umzuschalten — Tool-Ausgabe und Denkprozess ausblenden.',
   'Add a QWEN.md file to give Qwen Code persistent project context.':

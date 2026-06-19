@@ -132,10 +132,6 @@ const mockSlashCommands: SlashCommand[] = [
     action: vi.fn(),
     subCommands: [
       {
-        name: 'html',
-        kind: CommandKind.BUILT_IN,
-        description: 'Export HTML',
-        action: vi.fn(),
       },
       {
         name: 'md',
@@ -1153,9 +1149,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1179,9 +1173,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1211,9 +1203,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1240,9 +1230,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1270,9 +1258,7 @@ describe('InputPrompt', () => {
   });
 
   it('should keep export format suggestions visible after arrow navigation fills input', async () => {
-    const exportSuggestions = [
-      { label: 'html', value: 'html' },
-      { label: 'md', value: 'md' },
+    const exportSuggestions = [      { label: 'md', value: 'md' },
       { label: 'json', value: 'json' },
       { label: 'jsonl', value: 'jsonl' },
     ];
@@ -1304,7 +1290,6 @@ describe('InputPrompt', () => {
 
     const output = stripAnsi(lastFrame() ?? '');
     expect(output).toContain('/export md');
-    expect(output).toContain('html');
     expect(output).toContain('md');
     expect(output).toContain('json');
     expect(output).toContain('jsonl');
@@ -1322,9 +1307,7 @@ describe('InputPrompt', () => {
         ...mockCommandCompletion,
         showSuggestions: isExportRoot,
         suggestions: isExportRoot
-          ? [
-              { label: 'html', value: 'html' },
-              { label: 'md', value: 'md' },
+          ? [              { label: 'md', value: 'md' },
               { label: 'json', value: 'json' },
               { label: 'jsonl', value: 'jsonl' },
             ]
@@ -1369,7 +1352,7 @@ describe('InputPrompt', () => {
     await wait();
     const afterArrowFrame = stripAnsi(lastFrame() ?? '');
     expect(afterArrowFrame).toContain('/help');
-    expect(afterArrowFrame).not.toMatch(/\/export\s+(html|md|json|jsonl)/);
+    expect(afterArrowFrame).not.toMatch(//\\s+(md|json|jsonl)/);
     unmount();
   });
 
@@ -1379,9 +1362,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1407,9 +1388,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1424,7 +1403,7 @@ describe('InputPrompt', () => {
     // Phase 1 Down -> /export md (ref=1).
     stdin.write('\u001B[B');
     await wait();
-    // Phase 2 Up -> /export html (ref=0).
+    // Phase 2 Up -> /export md (ref=0).
     stdin.write('\u001B[A');
     await wait();
     // Phase 2 Up wraps from index 0 to last index -> /export jsonl (ref=3).
@@ -1432,7 +1411,6 @@ describe('InputPrompt', () => {
     await wait();
 
     expect(props.buffer.setText).toHaveBeenNthCalledWith(2, '/export md');
-    expect(props.buffer.setText).toHaveBeenNthCalledWith(3, '/export html');
     expect(props.buffer.setText).toHaveBeenNthCalledWith(4, '/export jsonl');
     unmount();
   });
@@ -1445,9 +1423,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1459,10 +1435,10 @@ describe('InputPrompt', () => {
     const { stdin, unmount } = renderWithProviders(<InputPrompt {...props} />);
     await wait();
 
-    // Tab in Phase 1 popup fills /export html and seeds the ref.
+    // Tab in Phase 1 popup fills /export md and seeds the ref.
     stdin.write('\t');
     await wait();
-    expect(props.buffer.setText).toHaveBeenLastCalledWith('/export html');
+    expect(props.buffer.setText).toHaveBeenLastCalledWith('/export md');
     expect(mockCommandCompletion.handleAutocomplete).not.toHaveBeenCalled();
 
     // Phase 2 Down now cycles forward from the seeded ref.
@@ -1477,18 +1453,16 @@ describe('InputPrompt', () => {
     unmount();
   });
 
-  it('should not overwrite /export html with extra args when Down is pressed', async () => {
+  it('should not overwrite /export md with extra args when Down is pressed', async () => {
     // Regression for PR #3701 second-round review (Critical): Phase 2 cycling
     // guard used startsWith('/export '), which matched inputs like
-    // '/export html --verbose' and silently wiped out the extra arguments.
+    // '/export md --verbose' and silently wiped out the extra arguments.
     // The strict getExportFormatFromInput guard must let such inputs fall
     // through without overwriting the buffer.
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1523,9 +1497,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1551,7 +1523,6 @@ describe('InputPrompt', () => {
     stdin.write('\u001B[B');
     await wait();
     expect(props.buffer.setText).not.toHaveBeenCalledWith('/export json');
-    expect(props.buffer.setText).not.toHaveBeenCalledWith('/export html');
     expect(props.buffer.setText).not.toHaveBeenCalledWith('/export jsonl');
     expect(props.buffer.setText).not.toHaveBeenCalled();
     unmount();
@@ -1566,9 +1537,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1598,7 +1567,6 @@ describe('InputPrompt', () => {
     stdin.write('\u001B[B');
     await wait();
     expect(props.buffer.setText).not.toHaveBeenCalledWith('/export json');
-    expect(props.buffer.setText).not.toHaveBeenCalledWith('/export html');
     expect(props.buffer.setText).not.toHaveBeenCalledWith('/export jsonl');
     expect(props.buffer.setText).not.toHaveBeenCalledWith('/export md');
     expect(props.buffer.setText).not.toHaveBeenCalled();
@@ -1613,9 +1581,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: false, // popup is closed for direct input
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1654,9 +1620,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: false,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -1696,9 +1660,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
         { label: 'report', value: 'report' }, // extra suggestion
@@ -1727,9 +1689,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
         { label: 'report', value: 'report' },
@@ -1759,9 +1719,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         // jsonl intentionally missing
       ],
@@ -1789,9 +1747,7 @@ describe('InputPrompt', () => {
     mockedUseCommandCompletion.mockReturnValue({
       ...mockCommandCompletion,
       showSuggestions: true,
-      suggestions: [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      suggestions: [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ],
@@ -3403,9 +3359,7 @@ describe('InputPrompt', () => {
 
     it('shows command search suggestions over active export suggestions', async () => {
       props.shellModeActive = false;
-      const exportSuggestions = [
-        { label: 'html', value: 'html' },
-        { label: 'md', value: 'md' },
+      const exportSuggestions = [        { label: 'md', value: 'md' },
         { label: 'json', value: 'json' },
         { label: 'jsonl', value: 'jsonl' },
       ];
