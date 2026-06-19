@@ -427,10 +427,17 @@ function resolveGenerationConfig(
   // priority over every other source so users can force-enable modalities
   // for models the registry doesn't know about (issue #X).
   if (cliModalities) {
+    // Filter the user-supplied list to the set of modalities downstream
+    // consumers actually recognise. This rejects typos like
+    // `--modalities=images` (the input would be added verbatim to
+    // `InputModalities` and trigger a TS2353 in callers reading
+    // `modalities.image`, or — worse — silently do nothing in JS code
+    // that only reads known keys).
+    const validModalities = new Set(['image', 'pdf', 'audio', 'video']);
     const entries = cliModalities
       .split(',')
       .map((m) => m.trim().toLowerCase())
-      .filter(Boolean);
+      .filter((m) => validModalities.has(m));
     if (entries.length > 0) {
       result.modalities = {
         ...(result.modalities ?? {}),

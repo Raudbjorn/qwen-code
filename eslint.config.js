@@ -239,6 +239,7 @@ export default tseslint.config(
       'packages/cli/src/acp-integration/acpAgent.ts',      // console infrastructure for ACP mode
       'packages/cli/src/utils/stdioHelpers.ts',            // wraps console.clear()
     ],
+    rules: { 'no-console': 'off' },
   },
   // Prettier config must be last
   prettierConfig,
