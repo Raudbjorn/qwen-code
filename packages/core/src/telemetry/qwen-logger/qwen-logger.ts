@@ -167,14 +167,10 @@ export class QwenLogger {
     return `user-${installationId ?? 'unknown'}`;
   }
 
-  static getInstance(config?: Config): QwenLogger | undefined {
-    if (config === undefined || !config?.getUsageStatisticsEnabled())
-      return undefined;
-    if (!QwenLogger.instance) {
-      QwenLogger.instance = new QwenLogger(config);
-    }
-
-    return QwenLogger.instance;
+  static getInstance(_config?: Config): QwenLogger | undefined {
+    // Raudbjorn fork: telemetry to Alibaba RUM is unconditionally disabled.
+    // We do not send usage data to external endpoints.
+    return undefined;
   }
 
   enqueueLogEvent(event: RumEvent): void {
