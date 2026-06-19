@@ -71,6 +71,7 @@ export interface CliGenerationConfigInputs {
     openaiBaseUrl?: string | undefined;
     openaiLogging?: boolean | undefined;
     openaiLoggingDir?: string | undefined;
+    modalities?: string | undefined;
   };
   settings: Settings;
   selectedAuthType: AuthType | undefined;
@@ -250,6 +251,7 @@ export function resolveCliGenerationConfig(
       model: argv.model,
       apiKey: argv.openaiApiKey,
       baseUrl: argv.openaiBaseUrl,
+      modalities: argv.modalities,
     },
     settings: {
       model: settings.model?.name

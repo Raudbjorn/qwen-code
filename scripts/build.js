@@ -30,27 +30,16 @@ if (!existsSync(join(root, 'node_modules'))) {
   execSync('npm install', { stdio: 'inherit', cwd: root });
 }
 
-// build all workspaces/packages in dependency order
 execSync('npm run generate', { stdio: 'inherit', cwd: root });
-
-// --cli-only: skip packages not needed by the CLI bundle
-// (webui, sdk, web-shell, vscode-ide-companion are for IDE/web use only)
-const cliOnly = process.argv.includes('--cli-only');
 
 // Build in dependency order:
 // 1. core (foundation package, includes test-utils)
-// 2. web-templates (embeddable web templates - used by cli)
-// 3. channel-base (base channel infrastructure - used by channel adapters and cli)
-// 4. channel adapters (depend on channel-base)
-// 5. acp-bridge (depends on core - used by cli)
-// 6. cli (depends on core, acp-bridge, web-templates, channel packages)
-// 7. webui (shared UI components - used by vscode companion)
-// 8. sdk (build-time devDep on acp-bridge for shared constants)
-// 9. web-shell (depends on webui and sdk)
-// 10. vscode-ide-companion (depends on webui)
+// 2. channel-base (base channel infrastructure - used by channel adapters and cli)
+// 3. channel adapters (depend on channel-base)
+// 4. acp-bridge (depends on core - used by cli)
+// 5. cli (depends on core, acp-bridge, channel packages)
 const buildOrder = [
   'packages/core',
-  'packages/web-templates',
   'packages/channels/base',
   'packages/channels/telegram',
   'packages/channels/weixin',
@@ -60,14 +49,6 @@ const buildOrder = [
   'packages/channels/plugin-example',
   'packages/acp-bridge',
   'packages/cli',
-  ...(cliOnly
-    ? []
-    : [
-        'packages/webui',
-        'packages/sdk-typescript',
-        'packages/web-shell',
-        'packages/vscode-ide-companion',
-      ]),
 ];
 
 for (const workspace of buildOrder) {
@@ -75,32 +56,17 @@ for (const workspace of buildOrder) {
     stdio: 'inherit',
     cwd: root,
   });
-
-  // After cli is built, generate the JSON Schema for settings
-  // so the vscode-ide-companion extension can provide IntelliSense
-  if (workspace === 'packages/cli') {
-    execSync('node --import tsx/esm scripts/generate-settings-schema.ts', {
-      stdio: 'inherit',
-      cwd: root,
-    });
-  }
 }
 
-// also build container image if sandboxing is enabled
+// Build container image if sandboxing is enabled.
 // skip (-s) npm install + build since we did that above
 try {
-  execSync('node scripts/sandbox_command.js -q', {
-    stdio: 'inherit',
-    cwd: root,
-  });
+  execSync('node scripts/sandbox_command.js -q', { stdio: 'inherit', cwd: root });
   if (
     process.env.BUILD_SANDBOX === '1' ||
     process.env.BUILD_SANDBOX === 'true'
   ) {
-    execSync('node scripts/build_sandbox.js -s', {
-      stdio: 'inherit',
-      cwd: root,
-    });
+    execSync('node scripts/build_sandbox.js -s', { stdio: 'inherit', cwd: root });
   }
 } catch {
   // ignore

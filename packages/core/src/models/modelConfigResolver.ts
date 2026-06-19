@@ -18,7 +18,7 @@
  * 5. Defaults - Built-in default values
  */
 
-import { AuthType } from '../core/contentGenerator.js';
+import { AuthType, type InputModalities } from '../core/contentGenerator.js';
 import type { ContentGeneratorConfig } from '../core/contentGenerator.js';
 import { DEFAULT_QWEN_MODEL } from '../config/models.js';
 import { defaultModalities } from '../core/modalityDefaults.js';
@@ -55,7 +55,13 @@ export interface ModelConfigCliInput {
   model?: string;
   apiKey?: string;
   baseUrl?: string;
-}
+  /**
+   * Override model modalities detection.
+   * Format: comma-separated list of 'image', 'pdf', 'audio', 'video'
+   * Example: 'image,pdf' enables image and PDF support
+   */
+  modalities?: string;
+ }
 
 /**
  * Settings-provided configuration values
@@ -271,6 +277,7 @@ export function resolveModelConfig(
     authType,
     modelProvider?.id ?? modelResult.value,
     sources,
+    cli?.modalities,
   );
 
   // ---- Env override: QWEN_CODE_API_TIMEOUT_MS ----
@@ -352,6 +359,7 @@ function resolveQwenOAuthConfig(
     AuthType.QWEN_OAUTH,
     resolvedModel,
     sources,
+    cli?.modalities,
   );
 
   // ---- Env override: QWEN_CODE_API_TIMEOUT_MS ----
@@ -377,6 +385,7 @@ function resolveGenerationConfig(
   authType: AuthType | undefined,
   modelId: string | undefined,
   sources: ConfigSources,
+  cliModalities?: string,
 ): Partial<ContentGeneratorConfig> {
   const result: Partial<ContentGeneratorConfig> = {};
 
@@ -412,6 +421,30 @@ function resolveGenerationConfig(
   if (result.modalities === undefined && modelId) {
     result.modalities = defaultModalities(modelId);
     sources['modalities'] = computedSource('auto-detected from model');
+  }
+
+  // CLI modalities override (--modalities=image,pdf,audio,video). Takes
+  // priority over every other source so users can force-enable modalities
+  // for models the registry doesn't know about (issue #X).
+  if (cliModalities) {
+    // Filter the user-supplied list to the set of modalities downstream
+    // consumers actually recognise. This rejects typos like
+    // `--modalities=images` (the input would be added verbatim to
+    // `InputModalities` and trigger a TS2353 in callers reading
+    // `modalities.image`, or — worse — silently do nothing in JS code
+    // that only reads known keys).
+    const validModalities = new Set(['image', 'pdf', 'audio', 'video']);
+    const entries = cliModalities
+      .split(',')
+      .map((m) => m.trim().toLowerCase())
+      .filter((m) => validModalities.has(m));
+    if (entries.length > 0) {
+      result.modalities = {
+        ...(result.modalities ?? {}),
+        ...Object.fromEntries(entries.map((m) => [m, true])),
+      } as InputModalities;
+      sources['modalities'] = computedSource('CLI --modalities override');
+    }
   }
 
   return result;

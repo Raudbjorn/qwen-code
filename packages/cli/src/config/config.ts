@@ -164,6 +164,12 @@ export interface CliArgs {
   openaiApiKey: string | undefined;
   openaiBaseUrl: string | undefined;
   openaiLoggingDir: string | undefined;
+  /**
+   * Override model modalities detection.
+   * Format: comma-separated list of 'image', 'pdf', 'audio', 'video'
+   * Example: 'image,pdf' enables image and PDF support
+   */
+  modalities: string | undefined;
   proxy: string | undefined;
   includeDirectories: string[] | undefined;
   screenReader: boolean | undefined;
@@ -773,6 +779,12 @@ export async function parseArguments(): Promise<CliArgs> {
         .option('openai-base-url', {
           type: 'string',
           description: 'OpenAI base URL (for custom endpoints)',
+        })
+        .option('modalities', {
+          type: 'string',
+          description:
+            'Override model modalities detection. Format: comma-separated list of image,pdf,audio,video. ' +
+            'Example: --modalities=image,pdf enables image and PDF support for any model.',
         })
         .option('screen-reader', {
           type: 'boolean',
@@ -1693,6 +1705,7 @@ export async function loadCliConfig(
       openaiBaseUrl: argv.openaiBaseUrl,
       openaiLogging: argv.openaiLogging,
       openaiLoggingDir: argv.openaiLoggingDir,
+      modalities: argv.modalities,
     },
     settings,
     selectedAuthType,
