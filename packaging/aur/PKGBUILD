@@ -1,0 +1,177 @@
+# Maintainer: svnbjrn <svnbjrn@sveinbjorn.dev>
+# Upstream: https://github.com/QwenLM/qwen-code
+# Fork:    https://github.com/Raudbjorn/qwen-code
+
+# This is the *-git variant of the qwen-code CLI.
+# It builds the project from source (VCS) instead of pulling a precompiled
+# npm tarball, so it tracks the latest commits on the chosen branch.
+#
+# Hardware target: AMD Ryzen 9 7900X3D (12C/24T), 64 GB DDR5, NVMe SSD.
+# Tuned for parallel esbuild + Node 22/25 V8 heap on this machine.
+
+_pkgname=qwen-code
+pkgname=${_pkgname}-git
+_name=qwen
+pkgver=0.18.3.r0.g2a7f369d7
+pkgrel=1
+pkgdesc="Open-source AI agent for the terminal (QwenLM/qwen-code fork by Raudbjorn)"
+arch=('any')
+url="https://github.com/Raudbjorn/qwen-code"
+license=('Apache-2.0')
+
+# Runtime: a modern Node.js is required (>= 22 per upstream engines.node).
+# ripgrep is a hard dep — qwen-code shells out to it for the search tool.
+depends=(
+  'nodejs>=22.0.0'
+  'ripgrep'
+)
+optdepends=(
+  'xdg-utils: open links and launch browser integration'
+)
+provides=("$_pkgname" "${_name}")
+conflicts=("$_pkgname" "${_name}")
+
+# VCS source — pulls the working tree of Raudbjorn/qwen-code at HEAD.
+# Using git+https so makepkg can refresh with `makepkg -C` for a re-roll.
+source=(
+  "${_pkgname}::git+https://github.com/Raudbjorn/qwen-code.git"
+  "system-defaults.json"
+)
+sha256sums=(
+  'SKIP'
+  '729be4baa7cd839aa383910df26d15111d2af1e4c5415f5bb01ff949881fe8cb'
+)
+
+# -- Parallel-build environment ------------------------------------------------
+# 12C/24T Ryzen 9 7900X3D: use every logical core for esbuild and npm.
+# 64 GB DDR5: large Node heap (8 GB) is comfortable; tsc workers benefit.
+# NVMe: SRCDEST/BUILDDIR on tmpfs/devices with the underlying NVMe is fine.
+#
+# CFLAGS / CXXFLAGS are intentionally left to the user's makepkg.conf.
+# Forcing -march= here would break the package on older x86 CPUs and
+# violate Arch packaging policy.
+#
+# All variables are also exported so child npm/esbuild invocations see them.
+_physical_cpus=$(nproc)
+_node_heap=$((8 * 1024))  # 8 GB V8 heap (conservative on 64 GB RAM)
+
+export MAKEFLAGS="-j${_physical_cpus}"
+export npm_config_jobs="${_physical_cpus}"
+export npm_config_loglevel=warn
+export npm_config_fund=false
+export npm_config_audit=false
+export npm_config_update_notifier=false
+export NODE_OPTIONS="--max-old-space-size=${_node_heap}"
+# Skip platform-mismatched optional deps. @rollup/rollup-*-* for win32-arm64
+# and darwin-arm64 are marked optional but would otherwise fail with
+# EBADPLATFORM on this Linux/x64 box.
+export npm_config_optional=false
+export CI=  # upstream sets CI=1 in some scripts; leave unset for our build
+export CXXFLAGS="${CXXFLAGS} -O3 -pipe"
+export CFLAGS="${CFLAGS} -O3 -pipe"
+
+# -- pkgver() -----------------------------------------------------------------
+# Generate pkgver from the current git HEAD on the default branch.
+# Format: <last-release-tag>.r<rev-count>.g<short-sha>
+pkgver() {
+  cd "${srcdir}/${_pkgname}"
+  local tag
+  tag=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null | sed 's/^v//' || echo "0.0.0")
+  printf '%s.r%s.g%s' \
+    "${tag}" \
+    "$(git rev-list --count HEAD)" \
+    "$(git rev-parse --short HEAD)"
+}
+
+# -- prepare() ----------------------------------------------------------------
+# Run after a clean VCS checkout. We make src writable and verify the tree.
+# makepkg with `git+https://` in source=() already clones the full ref +
+# tag history, so no manual `git fetch` is needed. Network access here
+# would also break reproducible clean-chroot builds via
+# devtools/extra-x86_64-build, which runs prepare() offline.
+prepare() {
+  cd "${srcdir}/${_pkgname}"
+  # Some upstream scripts require a writable working tree at build time
+  # (e.g. scripts/generate-git-commit-info.js writes to dist/).
+  chmod -R u+w .
+}
+
+# -- build() ------------------------------------------------------------------
+# Build the bundled `dist/cli.js` and per-workspace packages.
+# This mirrors `npm run bundle` from upstream plus the per-package tsc build,
+# but is *much* faster on a 12-core machine when jobs are not throttled.
+build() {
+  cd "${srcdir}/${_pkgname}"
+
+  # 1. Install all workspace deps. Upstream uses npm workspaces, so this
+  #    populates node_modules at the repo root plus per-package symlinks.
+  #    --no-optional: skip @rollup/rollup-{darwin,win32}-arm64 packages
+  #    that npm would otherwise try to install on this Linux/x64 host.
+  npm install --no-audit --no-fund --no-optional --include=dev --ignore-scripts
+
+  # 2. Build all workspace TypeScript packages in dependency order.
+  #    Build via scripts/build.js with --cli-only. The script is the
+  #    single entrypoint that knows which workspaces to skip (webui,
+  #    web-shell, sdk, vscode-ide-companion) on this slim fork.
+  node scripts/build.js --cli-only
+
+  # 3. Bundle dist/cli.js + the fzf worker + all shared chunks via esbuild.
+  #    esbuild is highly parallel; with 24 logical cores it will saturate
+  #    the machine on the bigger bundles. The `bundle` script is what
+  #    upstream ships for a release-quality single-file CLI.
+  npm run bundle
+}
+
+# -- check() ------------------------------------------------------------------
+# Quick post-build sanity check: the bundled CLI must respond to --version
+# and must list `qwen` as a known command without crashing.
+check() {
+  cd "${srcdir}/${_pkgname}"
+  local cli="dist/cli.js"
+  [[ -f "$cli" ]] || {
+    echo ":: ERROR: dist/cli.js not produced by build()" >&2
+    return 1
+  }
+  node "$cli" --version
+  node "$cli" --help >/dev/null
+}
+
+# -- package() ----------------------------------------------------------------
+# Install the built CLI into a versioned /usr/lib/ tree, expose a /usr/bin/qwen
+# symlink, and drop the license + README into the standard share/ locations.
+package() {
+  local appdir="${pkgdir}/usr/lib/${_pkgname}"
+  local bindir="${pkgdir}/usr/bin"
+
+  install -d "${appdir}" "${bindir}" \
+    "${pkgdir}/usr/share/licenses/${pkgname}" \
+    "${pkgdir}/usr/share/doc/${pkgname}" \
+    "${pkgdir}/etc/qwen-code"
+
+  # Copy the entire built dist/ + bundled assets into /usr/lib/qwen-code.
+  # We deliberately do NOT copy node_modules: at runtime the CLI uses
+  # node's native ESM resolution against the bundled dist/ tree, which is
+  # self-contained after `npm run bundle`.
+  cp -a "${srcdir}/${_pkgname}/dist/." "${appdir}/"
+
+  # ripgrep ships as a static binary inside vendor/; remove it because
+  # we depend on the system package which is updated independently.
+  rm -rf "${appdir}/vendor/ripgrep"
+
+  # The bundled entrypoint must be executable.
+  chmod 755 "${appdir}/cli.js"
+
+  # Ship the upstream LICENSE/README into standard FHS locations.
+  install -Dm644 "${srcdir}/${_pkgname}/LICENSE" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm644 "${srcdir}/${_pkgname}/README.md" \
+    "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+
+  # /usr/bin/qwen → ../lib/qwen-code/cli.js
+  ln -s "../lib/${_pkgname}/cli.js" "${bindir}/${_name}"
+
+  # Disable upstream's auto-update nag at the system level. Users can
+  # still re-enable it via ~/.qwen/settings.json.
+  install -Dm644 "${srcdir}/system-defaults.json" \
+    "${pkgdir}/etc/qwen-code/system-defaults.json"
+}
