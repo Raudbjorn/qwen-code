@@ -21,7 +21,6 @@ import {
   collectSessionData,
   normalizeSessionData,
   toMarkdown,
-  toHtml,
   toJson,
   toJsonl,
   generateExportFilename,
@@ -412,20 +411,6 @@ async function exportMarkdownAction(
 }
 
 /**
- * Action for the 'html' subcommand - exports session to HTML.
- */
-async function exportHtmlAction(
-  context: CommandContext,
-  args: string,
-): Promise<MessageActionReturn> {
-  return exportSessionAction(context, args, {
-    extension: 'html',
-    displayName: 'HTML',
-    format: toHtml,
-  });
-}
-
-/**
  * Action for the 'json' subcommand - exports session to JSON.
  */
 async function exportJsonAction(
@@ -461,20 +446,11 @@ export const exportCommand: SlashCommand = {
   get description() {
     return t('Export current session message history to a file');
   },
-  argumentHint: '[md|html|json|jsonl] [path]',
+  argumentHint: '[md|json|jsonl] [path]',
   kind: CommandKind.BUILT_IN,
   supportedModes: ['interactive', 'non_interactive', 'acp'] as const,
-  action: exportHtmlAction,
+  action: exportMarkdownAction,
   subCommands: [
-    {
-      name: 'html',
-      get description() {
-        return t('Export session to HTML format');
-      },
-      kind: CommandKind.BUILT_IN,
-      supportedModes: ['interactive', 'non_interactive', 'acp'] as const,
-      action: exportHtmlAction,
-    },
     {
       name: 'md',
       get description() {
